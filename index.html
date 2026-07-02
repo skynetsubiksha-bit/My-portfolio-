@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subiksha // portfolio.exe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#040308;
+    --bg-panel:#0c0a14;
+    --pink:#ff2e9a;
+    --pink-soft:#ff8fd0;
+    --pink-dim:#7a2059;
+    --text:#f3ecf5;
+    --muted:#b391c2;
+    --line: rgba(255,46,154,0.35);
+    --glow: 0 0 12px rgba(255,46,154,0.55);
+  }
+  [data-theme="light"]{
+    --bg:#fffafd;
+    --bg-panel:#ffffff;
+    --pink:#c8006e;
+    --pink-soft:#8f004e;
+    --pink-dim:#f2b8db;
+    --text:#1c0413;
+    --muted:#79355d;
+    --line: rgba(200,0,110,0.3);
+    --glow: 0 0 10px rgba(200,0,110,0.22);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Mono', monospace;
+    overflow-x:hidden;
+    transition:background 0.5s ease, color 0.5s ease;
+  }
+  h1,h2,h3,.display{ font-family:'Orbitron', sans-serif; letter-spacing:0.03em; }
+  a{color:var(--pink); text-decoration:none;}
+
+  /* ---------- background layers ---------- */
+  #matrix-canvas{ position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:0.5; pointer-events:none; }
+  .sky-layer{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; perspective:600px; }
+
+  .bird{ position:absolute; width:34px; height:16px; opacity:0.85; filter:drop-shadow(0 0 6px var(--pink)); animation:fly linear infinite; transform-style:preserve-3d; }
+  .bird svg{width:100%; height:100%; display:block;}
+  .bird .wing{ animation:flap3d 0.5s ease-in-out infinite; transform-origin:17px 8px; }
+
+  .butterfly{ position:absolute; width:30px; height:26px; opacity:0.9; filter:drop-shadow(0 0 8px var(--pink)); animation:flutter linear infinite; transform-style:preserve-3d; }
+  .butterfly svg{width:100%; height:100%; display:block;}
+  .butterfly .wingL, .butterfly .wingR{ animation:wingflap 0.4s ease-in-out infinite; }
+  .butterfly .wingL{ transform-origin:15px 13px; }
+  .butterfly .wingR{ transform-origin:15px 13px; animation-delay:0.05s; }
+
+  @keyframes fly{
+    0%{ transform:translate(-10vw,0) rotateY(0deg) scale(1); }
+    50%{ transform:translate(50vw,-8vh) rotateY(10deg) scale(1.05); }
+    100%{ transform:translate(110vw,-2vh) rotateY(0deg) scale(1); }
+  }
+  @keyframes flap3d{
+    0%,100%{ transform:rotateX(0deg) scaleY(1); }
+    50%{ transform:rotateX(50deg) scaleY(0.5); }
+  }
+  @keyframes flutter{
+    0%{ transform:translate(-8vw,20vh) translateZ(0px) rotate(-6deg); }
+    25%{ transform:translate(25vw,5vh) translateZ(40px) rotate(6deg); }
+    50%{ transform:translate(55vw,25vh) translateZ(0px) rotate(-4deg); }
+    75%{ transform:translate(80vw,8vh) translateZ(60px) rotate(5deg); }
+    100%{ transform:translate(110vw,18vh) translateZ(0px) rotate(-6deg); }
+  }
+  @keyframes wingflap{
+    0%,100%{ transform:rotateY(0deg) scaleX(1); }
+    50%{ transform:rotateY(70deg) scaleX(0.35); }
+  }
+
+  /* ---------- layout shell ---------- */
+  .wrap{ position:relative; z-index:2; }
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:30;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 6vw;
+    background:linear-gradient(to bottom, var(--bg) 65%, transparent);
+    backdrop-filter:blur(2px);
+  }
+  .logo{ font-family:'Orbitron', sans-serif; font-weight:900; font-size:1.1rem; color:var(--pink); text-shadow:var(--glow); cursor:pointer; }
+  .logo::after{content:"_"; animation:blink 1s step-end infinite;}
+  @keyframes blink{ 50%{opacity:0;} }
+
+  .nav-links{ display:flex; gap:22px; align-items:center; font-size:0.78rem; }
+  .nav-links a{ color:var(--muted); transition:color 0.2s; }
+  .nav-links a:hover{ color:var(--pink); }
+
+  .toggle{
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    border:1px solid var(--line); border-radius:20px; padding:5px 12px;
+    font-size:0.72rem; color:var(--muted); background:var(--bg-panel);
+  }
+  .toggle:hover{ color:var(--pink); border-color:var(--pink); }
+
+  section{ position:relative; z-index:2; padding:110px 6vw 50px; max-width:1000px; margin:0 auto; }
+
+  /* ---------- hero ---------- */
+  .hero{ min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding-top:80px; }
+  .prompt-line{ color:var(--pink-soft); font-size:0.85rem; margin-bottom:10px; }
+  .terminal{ border:1px solid var(--line); border-radius:10px; background:var(--bg-panel); padding:26px 28px; box-shadow:var(--glow); max-width:660px; }
+  .terminal h1{ font-size:clamp(1.8rem, 5vw, 3rem); color:var(--pink); text-shadow:var(--glow); line-height:1.15; margin-bottom:6px; }
+  .typed{ border-right:2px solid var(--pink); white-space:nowrap; overflow:hidden; display:inline-block; }
+  .role{ color:var(--muted); font-size:1rem; margin-bottom:18px; }
+  .hero p.lead{ color:var(--text); font-size:0.95rem; line-height:1.7; opacity:0.9; }
+  .btn-row{ margin-top:26px; display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{ font-family:'Space Mono', monospace; font-size:0.85rem; border:1px solid var(--pink); color:var(--pink); padding:10px 20px; border-radius:6px; background:transparent; cursor:pointer; transition:all 0.25s; }
+  .btn:hover{ background:var(--pink); color:var(--bg); box-shadow:var(--glow); }
+  .btn.ghost{ border-color:var(--line); color:var(--muted); }
+  .btn.ghost:hover{ border-color:var(--pink); color:var(--pink); background:transparent; box-shadow:none; }
+
+  .scroll-cue{ margin-top:60px; color:var(--muted); font-size:0.75rem; animation:bob 2s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(8px);} }
+
+  /* ---------- reveal ---------- */
+  .fade-up{ opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
+  .fade-up.in-view{ opacity:1; transform:translateY(0); }
+
+  .tag{ display:inline-block; font-size:0.72rem; color:var(--pink); border:1px solid var(--line); border-radius:20px; padding:3px 12px; margin-bottom:16px; letter-spacing:0.08em; }
+  .section-title{ font-size:clamp(1.4rem,3.4vw,2.1rem); margin-bottom:26px; color:var(--text); }
+  .section-title span{ color:var(--pink); }
+
+  .card{ border:1px solid var(--line); background:var(--bg-panel); border-radius:10px; padding:22px 24px; transition:border-color 0.25s, transform 0.25s; }
+  .card:hover{ border-color:var(--pink); transform:translateY(-3px); }
+
+  .quote-line{ font-style:italic; color:var(--pink-soft); font-size:0.92rem; margin:14px 0; border-left:3px solid var(--pink); padding-left:14px; }
+
+  /* about + education */
+  .about-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:22px; }
+  .stat-row{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px dashed var(--line); font-size:0.86rem; }
+  .stat-row:last-child{ border-bottom:none; }
+  .stat-row .k{ color:var(--muted); }
+  .stat-row .v{ color:var(--pink); font-weight:700; }
+
+  /* skills */
+  .bar-wrap{ margin-top:14px; }
+  .bar-label{ display:flex; justify-content:space-between; font-size:0.78rem; color:var(--muted); margin-bottom:6px; }
+  .bar{ height:8px; border-radius:4px; background:var(--pink-dim); overflow:hidden; }
+  .bar-fill{ height:100%; background:linear-gradient(90deg,var(--pink),var(--pink-soft)); width:0; transition:width 1.4s ease; box-shadow:var(--glow); }
+
+  .grid2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; }
+  .grid3{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px; }
+  .icon{ font-size:1.6rem; margin-bottom:10px; display:block; }
+  .card h3{ font-size:1rem; color:var(--pink-soft); margin-bottom:8px; }
+  .card p{ font-size:0.85rem; color:var(--muted); line-height:1.6; }
+
+  /* journey */
+  .journey{ position:relative; padding-left:30px; }
+  .journey::before{ content:""; position:absolute; left:9px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--pink), transparent); }
+  .step{ position:relative; margin-bottom:26px; }
+  .step::before{ content:""; position:absolute; left:-30px; top:2px; width:14px; height:14px; border-radius:50%; background:var(--bg); border:2px solid var(--pink); box-shadow:var(--glow); }
+  .step.current::before{ background:var(--pink); }
+  .step .lvl{ font-size:0.72rem; color:var(--pink); letter-spacing:0.08em; }
+  .step h3{ font-size:1rem; margin:4px 0; color:var(--text); }
+  .step p{ font-size:0.85rem; color:var(--muted); }
+
+  /* quote box */
+  .quote-box{ text-align:center; padding:30px 24px; }
+  #quote-text{ font-size:1.05rem; color:var(--pink-soft); font-style:italic; min-height:52px; display:flex; align-items:center; justify-content:center; }
+
+  /* bot */
+  .bot-window{ border:1px solid var(--line); border-radius:10px; background:var(--bg-panel); overflow:hidden; }
+  .bot-header{ background:var(--pink-dim); color:var(--bg); padding:10px 16px; font-size:0.8rem; font-family:'Orbitron',sans-serif; display:flex; align-items:center; gap:8px; }
+  .bot-header .dot2{ width:8px; height:8px; border-radius:50%; background:var(--pink); }
+  .bot-log{ max-height:220px; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .msg{ font-size:0.85rem; padding:8px 12px; border-radius:8px; max-width:80%; line-height:1.5; }
+  .msg.bot{ align-self:flex-start; background:var(--pink-dim); color:var(--bg); }
+  [data-theme="light"] .msg.bot{ color:#fff; }
+  .msg.user{ align-self:flex-end; background:transparent; border:1px solid var(--line); color:var(--text); }
+  .bot-input-row{ display:flex; border-top:1px solid var(--line); }
+  .bot-input-row input{ flex:1; background:transparent; border:none; padding:12px 14px; color:var(--text); font-family:'Space Mono',monospace; font-size:0.85rem; outline:none; }
+  .bot-input-row button{ background:var(--pink); color:var(--bg); border:none; padding:0 18px; cursor:pointer; font-family:'Orbitron',sans-serif; font-size:0.78rem; }
+
+  /* AI badge */
+  .ai-badge{ display:flex; align-items:center; gap:14px; border:1px dashed var(--line); border-radius:10px; padding:16px 20px; font-size:0.82rem; color:var(--muted); }
+  .ai-badge .dot{ width:9px; height:9px; border-radius:50%; background:var(--pink); box-shadow:var(--glow); animation:pulse 1.6s ease-in-out infinite; flex:none; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  /* contact */
+  .contact-card{ text-align:center; padding:40px 24px; }
+  .contact-card .mail{ font-size:clamp(1.1rem,3vw,1.5rem); color:var(--pink); word-break:break-all; text-shadow:var(--glow); display:inline-block; margin:14px 0 10px; }
+  .vip-line{ font-size:0.85rem; color:var(--muted); border:1px dashed var(--line); display:inline-block; padding:8px 16px; border-radius:20px; margin-top:14px; }
+  .copy-note{ font-size:0.72rem; color:var(--muted); margin-top:10px; height:14px; }
+
+  footer{ position:relative; z-index:2; text-align:center; padding:40px 6vw 60px; color:var(--muted); font-size:0.78rem; }
+  .visitor{ display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:20px; padding:6px 16px; margin-bottom:14px; color:var(--pink-soft); }
+
+  @media (max-width:720px){
+    .about-grid{ grid-template-columns:1fr; }
+    .nav-links{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bird, .butterfly, .scroll-cue, .ai-badge .dot{ animation:none !important; }
+    .fade-up{ transition:none; }
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<canvas id="matrix-canvas"></canvas>
+<div class="sky-layer" id="sky-layer"></div>
+
+<nav>
+  <div class="logo" onclick="document.getElementById('home').scrollIntoView()">SUBIKSHA</div>
+  <div class="nav-links">
+    <a href="#home">home</a>
+    <a href="#about">about</a>
+    <a href="#skills">skills</a>
+    <a href="#journey">journey</a>
+    <a href="#bot">bot</a>
+    <a href="#contact">contact</a>
+  </div>
+  <div class="toggle" id="theme-toggle">
+    <span id="toggle-icon">⚫</span> <span id="toggle-label">black_mode</span>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section class="hero" id="home">
+    <div class="prompt-line">visitor@subiksha-portfolio:~$ whoami</div>
+    <div class="terminal">
+      <h1><span class="typed" id="typed-name">Subiksha</span></h1>
+      <div class="role">// first-year BSc VisCom student · always learning something new</div>
+      <p class="lead">
+        Hi, I'm Subiksha — a curious first-year student who wants to break into tech
+        and media, one project at a time. This portfolio is my very first web project,
+        built with a little help from AI, as my own personal "hello world."
+      </p>
+      <div class="btn-row">
+        <a href="#about" class="btn">cat about.txt</a>
+        <a href="#bot" class="btn ghost">→ chat with subiksha_bot</a>
+      </div>
+    </div>
+    <div class="scroll-cue">↓ scroll to explore</div>
+  </section>
+
+  <section id="about">
+    <div class="fade-up">
+      <span class="tag">01 · ABOUT</span>
+      <h2 class="section-title">$ cat <span>about.txt</span></h2>
+    </div>
+    <div class="about-grid fade-up">
+      <div class="card">
+        <div class="stat-row"><span class="k">name</span><span class="v">Subiksha</span></div>
+        <div class="stat-row"><span class="k">college</span><span class="v">RD College</span></div>
+        <div class="stat-row"><span class="k">course</span><span class="v">BSc VisCom</span></div>
+        <div class="stat-row"><span class="k">year</span><span class="v">1st Year</span></div>
+        <div class="stat-row"><span class="k">12th marks</span><span class="v">442</span></div>
+        <div class="stat-row"><span class="k">status</span><span class="v">learning tech &amp; media 🚀</span></div>
+        <div class="quote-line">"Even talented people were once a beginner."</div>
+      </div>
+      <div class="card">
+        <h3>education.log</h3>
+        <div class="stat-row"><span class="k">institution</span><span class="v">RD College</span></div>
+        <div class="stat-row"><span class="k">program</span><span class="v">BSc Visual Communication</span></div>
+        <div class="stat-row"><span class="k">current year</span><span class="v">Year 1</span></div>
+        <div class="stat-row"><span class="k">prior grade</span><span class="v">12th · 442 marks</span></div>
+        <p style="margin-top:12px;">Always up for learning new things — that mindset is what led me to build this site in the first place.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="fade-up">
+      <span class="tag">02 · SKILLS</span>
+      <h2 class="section-title">$ ls <span>./skills</span></h2>
+    </div>
+    <div class="card fade-up">
+      <div class="bar-wrap">
+        <div class="bar-label"><span>enthusiasm for tech</span><span>96%</span></div>
+        <div class="bar"><div class="bar-fill" data-w="96"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label"><span>media &amp; visual communication</span><span>88%</span></div>
+        <div class="bar"><div class="bar-fill" data-w="88"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label"><span>curiosity / eagerness to learn</span><span>100%</span></div>
+        <div class="bar"><div class="bar-fill" data-w="100"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label"><span>adaptability</span><span>90%</span></div>
+        <div class="bar"><div class="bar-fill" data-w="90"></div></div>
+      </div>
+    </div>
+
+    <div class="grid2 fade-up" style="margin-top:20px;">
+      <div class="card">
+        <span class="icon">🌟</span>
+        <h3>inspiration</h3>
+        <p>I look up to leaders who rise from the ground up and stay close to the people they serve — someone like CM Vijay is who I'd love to grow into: driven, dedicated, and always working for something bigger.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🎯</span>
+        <h3>current focus</h3>
+        <p>Right now I'm focused on settling into college life, exploring media &amp; visual communication, and picking up small bits of tech — like building this very website.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="journey">
+    <div class="fade-up">
+      <span class="tag">03 · LEVEL UP</span>
+      <h2 class="section-title">$ run <span>journey.sh</span></h2>
+    </div>
+    <div class="journey fade-up">
+      <div class="step">
+        <div class="lvl">LEVEL 1</div>
+        <h3>Started BSc VisCom</h3>
+        <p>Stepped into RD College as a first-year student, ready to explore media and visual storytelling.</p>
+      </div>
+      <div class="step">
+        <div class="lvl">LEVEL 2</div>
+        <h3>Scored 442 in 12th</h3>
+        <p>Finished school strong and carried that momentum into college.</p>
+      </div>
+      <div class="step current">
+        <div class="lvl">LEVEL 3 · CURRENT</div>
+        <h3>Exploring tech &amp; media</h3>
+        <p>Learning new tools, picking up tech skills, and building my very first website — this one!</p>
+      </div>
+      <div class="step">
+        <div class="lvl">LEVEL 4 · NEXT UP</div>
+        <h3>Keep growing</h3>
+        <p>Aiming to keep learning relentlessly, the same way every talented person once started as a beginner.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="quote">
+    <div class="fade-up">
+      <span class="tag">04 · DAILY QUOTE</span>
+      <h2 class="section-title">$ ./<span>quote_of_the_day.sh</span></h2>
+    </div>
+    <div class="card quote-box fade-up">
+      <div id="quote-text">"Even talented people were once a beginner."</div>
+      <button class="btn" id="quote-btn" style="margin-top:16px;">✨ new quote</button>
+    </div>
+
+    <div class="card fade-up ai-badge" style="margin-top:20px;">
+      <span class="dot"></span>
+      <span>This is my very first web project — built with the help of AI (Claude). Learning has to start somewhere. 🌱</span>
+    </div>
+  </section>
+
+  <section id="bot">
+    <div class="fade-up">
+      <span class="tag">05 · SUBIKSHA BOT</span>
+      <h2 class="section-title">$ run <span>subiksha_bot.exe</span></h2>
+    </div>
+    <div class="bot-window fade-up">
+      <div class="bot-header"><span class="dot2"></span> subiksha_bot — silly answers about me, guaranteed</div>
+      <div class="bot-log" id="bot-log">
+        <div class="msg bot">hii! ask me anything about Subiksha and I'll give you a totally silly, totally unreliable answer 😜</div>
+      </div>
+      <div class="bot-input-row">
+        <input type="text" id="bot-input" placeholder="e.g. what's her favorite food?">
+        <button id="bot-send">ask</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="fade-up">
+      <span class="tag">06 · CONTACT</span>
+      <h2 class="section-title">$ ./<span>contact.sh</span></h2>
+    </div>
+    <div class="card contact-card fade-up">
+      <div class="prompt-line" style="text-align:center;">reach me at</div>
+      <a class="mail" href="mailto:subikshkani@gmail.com" id="mail-link">subikshkani@gmail.com</a>
+      <div>
+        <button class="btn" id="copy-btn">copy email</button>
+      </div>
+      <div class="copy-note" id="copy-note"></div>
+      <div class="vip-line">📵 phone number: sorry! my number is VIP access only 😏</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="visitor">👁 visitors: <span id="visit-count">…</span></div>
+    <div>designed &amp; built by Subiksha · first project, powered by AI</div>
+  </footer>
+
+</div>
+
+<script>
+/* ---------------- Matrix rain ---------------- */
+const canvas = document.getElementById('matrix-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, columns, drops;
+const glyphs = "01アイウエオカキクケコ<>/{}[]#$_SUBIKSHA".split("");
+
+function setupMatrix(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  const fontSize = 15;
+  columns = Math.floor(W / fontSize);
+  drops = new Array(columns).fill(1);
+}
+setupMatrix();
+window.addEventListener('resize', setupMatrix);
+
+function drawMatrix(){
+  const isLight = document.body.getAttribute('data-theme') === 'light';
+  ctx.fillStyle = isLight ? 'rgba(255,250,253,0.18)' : 'rgba(4,3,8,0.16)';
+  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = isLight ? 'rgba(200,0,110,0.55)' : 'rgba(255,46,154,0.65)';
+  ctx.font = '15px monospace';
+  for(let i=0;i<drops.length;i++){
+    const text = glyphs[Math.floor(Math.random()*glyphs.length)];
+    ctx.fillText(text, i*15, drops[i]*15);
+    if(drops[i]*15 > H && Math.random() > 0.975){ drops[i] = 0; }
+    drops[i]++;
+  }
+}
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!prefersReduced){ setInterval(drawMatrix, 55); } else { drawMatrix(); }
+
+/* ---------------- Birds & butterflies (pseudo-3D) ---------------- */
+const sky = document.getElementById('sky-layer');
+
+const birdSVG = `<svg viewBox="0 0 34 16" xmlns="http://www.w3.org/2000/svg">
+  <g class="wing">
+    <path d="M0 8 Q8 -6 17 8 Q26 -6 34 8" stroke="var(--pink)" stroke-width="2.4" fill="none"/>
+  </g>
+</svg>`;
+
+const butterflySVG = `<svg viewBox="0 0 30 26" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="15" cy="13" rx="1.6" ry="8" fill="var(--pink-soft)"/>
+  <path class="wingL" d="M15 8 C4 -2 -2 8 6 15 C10 18 14 14 15 8 Z" fill="var(--pink)" opacity="0.85"/>
+  <path class="wingR" d="M15 8 C26 -2 32 8 24 15 C20 18 16 14 15 8 Z" fill="var(--pink)" opacity="0.85"/>
+  <path class="wingL" d="M15 15 C7 15 4 22 9 24 C12 25 14 20 15 15 Z" fill="var(--pink-soft)" opacity="0.85"/>
+  <path class="wingR" d="M15 15 C23 15 26 22 21 24 C18 25 16 20 15 15 Z" fill="var(--pink-soft)" opacity="0.85"/>
+</svg>`;
+
+function spawnBird(){
+  const el = document.createElement('div');
+  el.className = 'bird';
+  el.innerHTML = birdSVG;
+  const top = Math.random()*60 + 5;
+  const dur = 14 + Math.random()*10;
+  el.style.top = top + 'vh';
+  el.style.animationDuration = dur + 's';
+  el.style.transform = `scale(${0.7 + Math.random()*0.8})`;
+  sky.appendChild(el);
+  setTimeout(()=>el.remove(), dur*1000);
+}
+
+function spawnButterfly(){
+  const el = document.createElement('div');
+  el.className = 'butterfly';
+  el.innerHTML = butterflySVG;
+  const dur = 12 + Math.random()*9;
+  el.style.animationDuration = dur + 's';
+  el.style.transform = `scale(${0.6 + Math.random()*0.8})`;
+  sky.appendChild(el);
+  setTimeout(()=>el.remove(), dur*1000);
+}
+
+if(!prefersReduced){
+  for(let i=0;i<4;i++) setTimeout(spawnBird, i*1800);
+  for(let i=0;i<3;i++) setTimeout(spawnButterfly, i*2600);
+  setInterval(spawnBird, 4200);
+  setInterval(spawnButterfly, 5200);
+}
+
+/* ---------------- Theme toggle (black / white mode) ---------------- */
+const body = document.body;
+const toggle = document.getElementById('theme-toggle');
+const icon = document.getElementById('toggle-icon');
+const label = document.getElementById('toggle-label');
+
+toggle.addEventListener('click', ()=>{
+  const isDark = body.getAttribute('data-theme') === 'dark';
+  body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  icon.textContent = isDark ? '⚪' : '⚫';
+  label.textContent = isDark ? 'white_mode' : 'black_mode';
+});
+
+/* ---------------- Scroll reveal ---------------- */
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add('in-view');
+      entry.target.querySelectorAll && entry.target.querySelectorAll('.bar-fill').forEach(bar=>{
+        bar.style.width = bar.dataset.w + '%';
+      });
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+
+/* ---------------- Typing effect for name ---------------- */
+const typedEl = document.getElementById('typed-name');
+const fullText = "Subiksha";
+if(prefersReduced){
+  typedEl.style.borderRight = 'none';
+} else {
+  typedEl.textContent = '';
+  let i = 0;
+  function typeChar(){
+    if(i <= fullText.length){
+      typedEl.textContent = fullText.slice(0,i);
+      i++;
+      setTimeout(typeChar, 140);
+    }
+  }
+  typeChar();
+}
+
+/* ---------------- Visitor counter ---------------- */
+const countEl = document.getElementById('visit-count');
+(function initCounter(){
+  const img = new Image();
+  const path = encodeURIComponent(location.hostname + location.pathname || 'subiksha-portfolio');
+  img.onload = function(){ /* real badge loaded once hosted online */ };
+  img.onerror = function(){};
+  img.src = `https://api.visitorbadge.io/api/combined?path=${path}&label=&countColor=%23ff2e9a`;
+  let n = Math.floor(Math.random()*40)+12;
+  countEl.textContent = n;
+})();
+
+/* ---------------- Copy email ---------------- */
+const copyBtn = document.getElementById('copy-btn');
+const copyNote = document.getElementById('copy-note');
+copyBtn.addEventListener('click', async ()=>{
+  const email = 'subikshkani@gmail.com';
+  try{
+    await navigator.clipboard.writeText(email);
+    copyNote.textContent = 'copied to clipboard ✓';
+  }catch(e){
+    copyNote.textContent = email;
+  }
+  setTimeout(()=>copyNote.textContent='', 2500);
+});
+
+/* ---------------- Daily quote generator ---------------- */
+const quotes = [
+  "Even talented people were once a beginner.",
+  "Small steps in tech today, big dreams in motion tomorrow.",
+  "Curiosity is Subiksha's favorite programming language.",
+  "First projects are just future glow-ups in disguise.",
+  "Learning never goes out of style — neither does pink.",
+  "Every expert was once too a first-year with a blank screen.",
+  "Media, tech, dreams — Subiksha's building all three.",
+  "Confidence loading... 442 marks and counting.",
+  "Growth mode: always on."
+];
+const quoteText = document.getElementById('quote-text');
+const quoteBtn = document.getElementById('quote-btn');
+quoteBtn.addEventListener('click', ()=>{
+  let q;
+  do{ q = quotes[Math.floor(Math.random()*quotes.length)]; } while(q === quoteText.textContent.replace(/"/g,''));
+  quoteText.style.opacity = 0;
+  setTimeout(()=>{
+    quoteText.textContent = `"${q}"`;
+    quoteText.style.transition = 'opacity 0.4s ease';
+    quoteText.style.opacity = 1;
+  }, 200);
+});
+
+/* ---------------- Subiksha bot (silly canned answers) ---------------- */
+const botLog = document.getElementById('bot-log');
+const botInput = document.getElementById('bot-input');
+const botSend = document.getElementById('bot-send');
+
+const silly = {
+  favorite: "her favorite thing changes every 5 minutes, but right now it's probably pink gradients 💗",
+  food: "rumor says she survives on snacks and sheer willpower 🍿",
+  hobby: "editing videos, dancing when no one's watching, and occasionally debugging HTML by staring at it very intensely",
+  crush: "classified information 🤫 my lips (pixels) are sealed",
+  sleep: "sleep schedule: still in beta testing 😴",
+  future: "future CEO, future dancer, future 'how did she do all this' legend",
+  tech: "she just built her first website and is already acting like a senior developer 💻",
+  music: "probably whatever's trending plus one obscure song she won't explain",
+  smart: "extremely. ask her 12th marks (442!) if you don't believe me",
+  hobbies: "editing, dancing, and low-key plotting world domination one project at a time",
+  default: [
+    "hmm, my circuits say... maybe? 🤷‍♀️",
+    "according to my totally-not-made-up database: absolutely yes.",
+    "I asked Subiksha but she just laughed and changed the subject 😅",
+    "that's classified level: VIP access only, just like her phone number 😏",
+    "42% likely, 58% chance she'll just say 'idk' herself.",
+    "beep boop... silly answer generated successfully ✅"
+  ]
+};
+
+function botReply(msg){
+  const lower = msg.toLowerCase();
+  for(const key in silly){
+    if(key !== 'default' && lower.includes(key)){
+      return silly[key];
+    }
+  }
+  const arr = silly.default;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function addMsg(text, cls){
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.textContent = text;
+  botLog.appendChild(d);
+  botLog.scrollTop = botLog.scrollHeight;
+}
+
+function handleSend(){
+  const val = botInput.value.trim();
+  if(!val) return;
+  addMsg(val, 'user');
+  botInput.value = '';
+  setTimeout(()=>{ addMsg(botReply(val), 'bot'); }, 500);
+}
+botSend.addEventListener('click', handleSend);
+botInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') handleSend(); });
+</script>
+</body>
+</html>
